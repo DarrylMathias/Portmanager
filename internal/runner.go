@@ -1,15 +1,17 @@
-package main
+package internal
 
 import (
-	"fmt"
-	"os/exec"
+	// "fmt"
 	"os"
+	"os/exec"
+	"portmanager/helpers"
 	"regexp"
 	"strconv"
 	"strings"
+
+	"github.com/fatih/color"
 	"github.com/olekukonko/tablewriter"
 	"github.com/olekukonko/tablewriter/renderer"
-	"github.com/fatih/color"
 )
 
 type Process struct{
@@ -20,12 +22,6 @@ type Process struct{
 }
 
 var Processes []Process
-
-func logError(err error){
-	if err != nil{
-		panic(err)
-	}
-}
 
 func isInSlice(process Process) bool{
 	for _, p := range Processes{
@@ -39,10 +35,10 @@ func isInSlice(process Process) bool{
 func returnCommandOutput(command string) []string{
 	formattedCommand := strings.Split(command, " ")
 	output, err := exec.Command(formattedCommand[0], formattedCommand[1:]...).Output()
-	logError(err)
+	helpers.LogError(err)
 
 	outputSlice := strings.Split(string(output), "\n")
-	fmt.Println(string(output))
+	// fmt.Println(string(output))
 	return outputSlice
 }
 
@@ -68,7 +64,7 @@ func extractProcess(filteredOutputSlice []string){
 		var isPortAvailable bool = true
 		process := matchSlice[1]
 		pid, err := strconv.Atoi(matchSlice[2])
-		logError(err)
+		helpers.LogError(err)
 		port, err := strconv.Atoi(portSlice[1])
 		if err != nil{
 			isPortAvailable = false
@@ -124,9 +120,13 @@ func generateTable(){
 	table.Render()
 }
 
-func main(){
+func GenerateProcesses(){
 	outputSlice := returnCommandOutput("ss -tlp")
 	filteredOutputSlice := filterCommandOutput(outputSlice)
 	extractProcess(filteredOutputSlice)
+}
+
+func Runner(){
+	GenerateProcesses()
 	generateTable()
 }	
